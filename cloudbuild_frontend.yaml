@@ -1,0 +1,40 @@
+steps:
+  # Build frontend image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-frontend'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/rag-frontend:latest'
+      - './frontend'
+
+  # Push frontend image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-frontend'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/rag-frontend:latest'
+
+  # Deploy frontend to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-frontend'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'rag-frontend'
+      - '--image=gcr.io/$PROJECT_ID/rag-frontend:latest'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--memory=512Mi'
+      - '--timeout=300'
+      - '--cpu=1'
+      - '--max-instances=10'
+      - '--port=8080'
+      - '--cpu-boost'
+
+images:
+  - 'gcr.io/$PROJECT_ID/rag-frontend:latest'
+
+timeout: '1200s'
